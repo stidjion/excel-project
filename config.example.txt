@@ -1,0 +1,4 @@
+```env
+OPENAI_API_KEY=your_openai_key_here
+DB_URL=sqlite:///app.db
+EXCEL_OUTPUT_FOLDER=./output
