@@ -1,24 +1,28 @@
 import openpyxl as px
 from openpyxl import load_workbook
 import pandas
+
 class ExcelConnector:
     def __init__(self, file_path):
-      self.file_path = file_path
-      
-    def load_workbook(self):
+        self.file_path = file_path
+        self.wb = self._load_file()
+        self.ws = self.wb.active
+        self.df = self._load_dataframe()
+
+    def _load_file(self):
+     
+     try:
+            wb = load_workbook(self.file_path)
+            return wb
+     except:
+         wb = px.Workbook()
+         wb.save(self.file_path)
+         return wb
+    def _load_dataframe(self):
         try:
-            workbook = load_workbook(filename=self.file_path)
-            return workbook
-        except Exception as e:
-            print(f"Error loading workbook: {e}")
-            return None
-    def active_sheet(self, workbook, sheet_name):
-        try:
-            wb =  workbook()
-            ws = wb.active if sheet_name is None else wb[sheet_name]
-            ws.title = sheet_name
-            return ws
-        except Exception as e:
-            print(f"Error accessing sheet: {e}")
-            return None
-    
+            df = pandas.read_excel(self.file_path)
+            return df
+        except:
+            df = pandas.DataFrame()
+            return df
+
