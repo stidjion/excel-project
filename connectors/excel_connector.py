@@ -8,6 +8,7 @@ class ExcelConnector:
         self.wb = self._load_file()
         self.ws = self.wb.active
         self.df = self._load_dataframe()
+  
 
     def _load_file(self):
      
@@ -25,4 +26,9 @@ class ExcelConnector:
         except:
             df = pandas.DataFrame()
             return df
+    def save_dataframe(self, df):
+        df.to_excel(self.file_path, index=False)
+        return True
+    
+
 
