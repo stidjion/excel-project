@@ -1,6 +1,7 @@
 import openpyxl as px
 from openpyxl import load_workbook
 import pandas as pd
+from openpyxl.worksheet.table import Table, TableStyleInfo
 
 class ExcelConnector:
     def __init__(self, file_path):
@@ -49,7 +50,10 @@ class ExcelConnector:
         except:
             print(f"Failed to create sheet '{sheet_name}'.")
             return False
-
+    def create_table(self, table_name, columns):
+        if table_name in self.wb.sheetnames:
+            print(f"Table '{table_name} already exists.")
+        else:
     
 
 
