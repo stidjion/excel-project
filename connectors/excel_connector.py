@@ -20,6 +20,7 @@ class ExcelConnector:
          wb = px.Workbook()
          wb.save(self.file_path)
          return wb
+     
     def _load_dataframe(self):
         try:
             df = pd.read_excel(self.file_path, sheet_name=self.ws.title)
@@ -27,6 +28,7 @@ class ExcelConnector:
         except:
             df = pd.DataFrame()
             return df
+        
     def save_dataframe(self):
         with pd.ExcelWriter(self.file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
           self.df.to_excel(writer, sheet_name=self.ws.title, index=False)
@@ -40,6 +42,7 @@ class ExcelConnector:
         else:
                 print(f"Sheet '{sheet_name}' does not exist.")
                 return False
+        
     def create_sheet(self, sheet_name):
         try:
             self.wb.create_sheet(title=sheet_name)
@@ -50,10 +53,51 @@ class ExcelConnector:
         except:
             print(f"Failed to create sheet '{sheet_name}'.")
             return False
-    def create_table(self, table_name, columns):
-        if table_name in self.wb.sheetnames:
-            print(f"Table '{table_name} already exists.")
-        else:
+        
+    def create_table(self, columns):
+
+        try:
+            self.ws.delete_rows(1, self.ws.max_row)
+            self.ws.append(columns)
+            self.df = pd.DataFrame(columns=columns)
+            self.save_dataframe()
+            return True
+        except Exception as e:
+            print(f"Failed to create table: {e}")
+            return False
+        
+    def add_row(self, value_dict):
+        try:
+            new_value = pd.DataFrame([value_dict])
+            self.df = pd.concat([self.df, new_value], ignore_index= True)
+            self.df.save
+            self.wb.save(self.file_path)
+            return self.get_preview()    
+        except Exception as e:
+            print(f"Failed to add row: {e}")
+            return False
+        
     
-
-
+    def get_preview(self, n=5):
+        try:
+            self.df.head(n)
+            preview = self.df.head(n).to_dict(orient='records')
+            return ("status:success, preview:", preview)
+        except Exception as e:
+            return ("status:error, message:", str(e))
+        
+    def update_cell(self, column_name, row_index, new_value):
+        try:
+            if column_name in self.df.columns and 0<=row_index < len(self.df):
+                self.df.loc[row_index, column_name] = new_value
+                self.save_dataframe()
+                return self.get_preview()
+            else:
+                print("Invalid column name or row index.")
+                return False
+        except Exception as e:
+            print(f"failed to update cell:", e)
+            return False
+        
+        
+    
