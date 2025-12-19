@@ -70,8 +70,7 @@ class ExcelConnector:
         try:
             new_value = pd.DataFrame([value_dict])
             self.df = pd.concat([self.df, new_value], ignore_index= True)
-            self.df.save
-            self.wb.save(self.file_path)
+            self.save_dataframe()
             return self.get_preview()    
         except Exception as e:
             print(f"Failed to add row: {e}")
@@ -98,6 +97,32 @@ class ExcelConnector:
         except Exception as e:
             print(f"failed to update cell:", e)
             return False
+        
+    def sum_column(self, column_name):
+            """SUM only ONE column — per MVP spec"""
+            try:
+                if column_name not in self.df.columns:
+                    return {
+                        "status": "error",
+                        "message": f"Column '{column_name}' not found."
+                    }
+
+                numeric = pd.to_numeric(self.df[column_name], errors='coerce')
+                skipped = numeric.isna().sum()
+                total = numeric.sum()
+
+                return {
+                    "status": "success",
+                    "column": column_name,
+                    "sum": float(total),
+                    "skipped_values": int(skipped)
+                }
+            except Exception as e:
+                return {"status": "error", "message": str(e)}
+            
+
+                                  
+
         
         
     
