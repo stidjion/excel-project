@@ -119,6 +119,25 @@ class ExcelConnector:
                 }
             except Exception as e:
                 return {"status": "error", "message": str(e)}
+    def execute(self, action, params=None):
+        actions = {
+            "create_table": self.create_table,
+            "add_row": self.add_row,
+            "update_cell": self.update_cell,
+            "sum_column": self.sum_column,
+            "preview": self.get_preview,
+            "set_sheet": self.set_active_sheet,
+            "create_sheet": self.create_sheet
+        }
+
+        if action not in actions:
+            return {"status": "error", "message": "Unknown action"}
+
+        if params is None:
+            return actions[action]()
+
+        return actions[action](**params)
+
             
 
                                   
