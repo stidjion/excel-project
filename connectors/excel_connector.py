@@ -81,7 +81,7 @@ class ExcelConnector:
         try:
             self.df.head(n)
             preview = self.df.head(n).to_dict(orient='records')
-            return ("status:success, preview:", preview)
+            return ("status:success", preview)
         except Exception as e:
             return ("status:error, message:", str(e))
         
@@ -126,17 +126,41 @@ class ExcelConnector:
             "update_cell": self.update_cell,
             "sum_column": self.sum_column,
             "preview": self.get_preview,
-            "set_sheet": self.set_active_sheet,
+            "set_active_sheet": self.set_active_sheet,
             "create_sheet": self.create_sheet
+        }
+        schemas = {
+            "create_table": {"columns"},
+            "add_row": {"value_dict"},
+            "update_cell": {"column_name", "row_index", "new_value"},
+            "sum_column": {"column_name"},
+            "preview": set(),
+            "set_active_sheet": {"sheet_name"},
+            "create_sheet": {"sheet_name"}
         }
 
         if action not in actions:
-            return {"status": "error", "message": "Unknown action"}
+            return {"status": "error","message": f"Action missing: {action}"}
 
         if params is None:
-            return actions[action]()
+            params = {}
 
-        return actions[action](**params)
+        if not isinstance(params, dict):
+            return {"status": "error", "message": "params must be an object"}
+
+        required = schemas[action]
+        missing = required - params.keys()
+
+        if missing:
+            return {"status": "error", "message": f"Missing params: {missing}"}
+
+        try:
+            result = actions[action](**params)
+            return {"status": "success", "data": result}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+
 
             
 
