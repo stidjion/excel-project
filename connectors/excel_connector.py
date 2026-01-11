@@ -2,6 +2,7 @@ import openpyxl as px
 from openpyxl import load_workbook
 import pandas as pd
 from openpyxl.worksheet.table import Table, TableStyleInfo
+from protocols import Protocols
 
 class ExcelConnector:
     def __init__(self, file_path):
@@ -120,53 +121,50 @@ class ExcelConnector:
             except Exception as e:
                 return {"status": "error", "message": str(e)}
             
-    def execute(self, action, params=None):
-        actions = {
-            "create_table": self.create_table,
-            "add_row": self.add_row,
-            "update_cell": self.update_cell,
-            "sum_column": self.sum_column,
-            "preview": self.get_preview,
-            "set_active_sheet": self.set_active_sheet,
-            "create_sheet": self.create_sheet
+def execute(self, action, params=None, mode=None):
+    protocol = Protocols()
+
+    if params is None:
+        params = {}
+
+    try:
+        # 1. Validate action + execution intent
+        protocol.validate_action(action, mode)
+
+        # 2. Validate parameters strictly
+        protocol.validate_params(action, params)
+
+    except ValueError as e:
+        return {
+            "status": "error",
+            "message": str(e)
         }
-        schemas = {
-            "create_table": {"columns"},
-            "add_row": {"value_dict"},
-            "update_cell": {"column_name", "row_index", "new_value"},
-            "sum_column": {"column_name"},
-            "preview": set(),
-            "set_active_sheet": {"sheet_name"},
-            "create_sheet": {"sheet_name"}
+
+    actions = {
+        "create_table": self.create_table,
+        "add_row": self.add_row,
+        "update_cell": self.update_cell,
+        "sum_column": self.sum_column,
+        "preview": self.get_preview,
+        "set_active_sheet": self.set_active_sheet,
+        "create_sheet": self.create_sheet
+    }
+
+    if action not in actions:
+        return {
+            "status": "error",
+            "message": f"Action missing: {action}"
         }
 
-        if action not in actions:
-            return {"status": "error","message": f"Action missing: {action}"}
+    try:
+        result = actions[action](**params)
+        return {
+            "status": "success",
+            "data": result
+        }
 
-        if params is None:
-            params = {}
-
-        if not isinstance(params, dict):
-            return {"status": "error", "message": "params must be an object"}
-
-        required = schemas[action]
-        missing = required - params.keys()
-
-        if missing:
-            return {"status": "error", "message": f"Missing params: {missing}"}
-
-        try:
-            result = actions[action](**params)
-            return {"status": "success", "data": result}
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-
-
-
-            
-
-                                  
-
-        
-        
-    
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
