@@ -21,10 +21,22 @@ connector = ExcelConnector("data.xlsx")
 
 @app.post("/execute")
 def execute_command(command: Command):
-    result = connector.execute(
-        action=command.action,
-        params=command.params,
-        mode=command.mode
-    )
-    return result
-
+     
+    try:
+        result = connector.execute(
+            action=command.action,
+            params=command.params,
+            mode=command.mode
+        )
+        return result
+    except Exception as e:  
+        return {'status': 'error',
+                 'message': str(e),
+                 'data': None
+                }
+    except ValueError as ve:
+        return {'status': 'error',
+                 'message': str(ve),
+                 'data': None
+                }
+    

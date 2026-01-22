@@ -2,3 +2,4 @@ openai
 pandas
 sqlalchemy
 python-dotenv
+fastapi uvicorn
