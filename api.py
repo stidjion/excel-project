@@ -5,7 +5,6 @@ from typing import Optional, Dict, Any
 
 app = FastAPI()
 
-# ---- Request Schema ----
 
 class Command(BaseModel):
     action: str
@@ -14,10 +13,6 @@ class Command(BaseModel):
 
 connector = ExcelConnector("data.xlsx")
 
-# ---- Dependency ----
-# assume `connector` is already initialized elsewhere
-# from connectors.excel_connector import ExcelConnector
-# connector = ExcelConnector(...)
 
 @app.post("/execute")
 def execute_command(command: Command):
