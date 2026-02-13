@@ -1,5 +1,8 @@
-google-generativeai 
+ollama
 pandas
 sqlalchemy
 python-dotenv
-fastapi uvicorn
+fastapi 
+uvicorn
+requests
+langchain

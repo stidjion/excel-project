@@ -1,28 +1,52 @@
-from google import genai
-from google.genai import types
-import defined_function
+import ollama
+from ollama import chat 
+from.defined_function import defined_functions
 
 
 
-# Configure the client and tools
-client = genai.Client()
-tools = types.Tool(function_declarations=defined_function.defined_functions)
-config = types.GenerateContentConfig(tools=[tools])
 
-# Send request with function declarations
-response = client.models.generate_content(
-    model="gemini-3-flash-preview",
-    contents="Schedule a meeting with Bob and Alice for 03/14/2025 at 10:00 AM about the Q3 planning.",
-    config=config,
-)
 
-# Check for a function call
-if response.candidates[0].content.parts[0].function_call:
-    function_call = response.candidates[0].content.parts[0].function_call
-    print(f"Function to call: {function_call.name}")
-    print(f"Arguments: {function_call.args}")
-    #  In a real app, you would call your function here:
-    #  result = schedule_meeting(**function_call.args)
-else:
-    print("No function call found in the response.")
-    print(response.text)
+messages = [{'role': 'user', 'content': "What is the temperature in New York?"}]
+
+while True:
+  stream = chat(
+    model='qwen 2.5:7b',
+    messages=messages,
+    tools=[defined_functions],
+    stream=True,
+    think=True,
+  )
+
+  thinking = ''
+  content = ''
+  tool_calls = []
+
+  done_thinking = False
+  # accumulate the partial fields
+  for chunk in stream:
+    if chunk.message.thinking:
+      thinking += chunk.message.thinking
+      print(chunk.message.thinking, end='', flush=True)
+    if chunk.message.content:
+      if not done_thinking:
+        done_thinking = True
+        print('\n')
+      content += chunk.message.content
+      print(chunk.message.content, end='', flush=True)
+    if chunk.message.tool_calls:
+      tool_calls.extend(chunk.message.tool_calls)
+      print(chunk.message.tool_calls)
+
+  # append accumulated fields to the messages
+  if thinking or content or tool_calls:
+    messages.append({'role': 'assistant', 'thinking': thinking, 'content': content, 'tool_calls': tool_calls})
+
+  if not tool_calls:
+    break
+
+  for call in tool_calls:
+    if call.function.name == defined_functions[0].name:
+      result = defined_functions[0](**call.function.arguments)
+    else:
+      result = 'Unknown tool'
+    messages.append({'role': 'tool', 'tool_name': call.function.name, 'content': result})
